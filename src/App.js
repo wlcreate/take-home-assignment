@@ -19,10 +19,19 @@ This      is a second paragraph with extraneous whitespace.`);
 
   const transformText = input => {
     let output = input;
-    /*
-    your work goes here!
-    */
-    setTextOutput(output);
+    
+    // check if the user input anything
+    if (output === "") {
+      setTextOutput("")
+    }
+
+    let replaceSingleLineBreaks = output.replace(/(?<!\n)\n(?!\n)/g, " "); // this replaces a single new line with a single space
+    let replaceMultipleLineBreaks = replaceSingleLineBreaks.replace(/\n\n+/g, '\n\n'); // this replaces multiple new lines with a single space between them
+    let stringNoWhiteSpace = replaceMultipleLineBreaks.replace(/\s\s{2,}/g, " "); // this removes the extraneous white space
+
+
+    setTextOutput(stringNoWhiteSpace)
+    // setTextOutput(output);
   }
   
   return (

@@ -7,6 +7,7 @@ a badly formatted file. This line is pretty long! It's way more than 80 characte
 
 This      is a second paragraph with extraneous whitespace.`);
   const [textOutput, setTextOutput] = React.useState('');
+  const maximumCharacters = 80;
 
   const handleChange = event => {
     setTextInput(event.target.value);
@@ -23,7 +24,7 @@ This      is a second paragraph with extraneous whitespace.`);
     // normalizing space
     let normalSpacing = fixSpacing(output);
     
-    // formatting where to break
+    // formatting with line wrapping
     output = formatLineWrap(normalSpacing);
 
     setTextOutput(output);
@@ -38,7 +39,7 @@ This      is a second paragraph with extraneous whitespace.`);
   }
 
   const formatLineWrap = (normalizedSpaceString) => {
-    let paragraphs = normalizedSpaceString.split(/\n\n/); // split them by the "paragraphs"
+    let paragraphs = normalizedSpaceString.split(/\n\n/); // split them by paragraphs
     let updatedParagraphsArray = [];
     let lineWrappedOutput = [];
 
@@ -50,11 +51,9 @@ This      is a second paragraph with extraneous whitespace.`);
     };
 
     for (let i = 0; i < paragraphs.length; i++) {
-      if (paragraphs[i].length < 80) {
+      if (paragraphs[i].length < maximumCharacters) {
         updatedParagraphsArray.push(paragraphs[i]);
       } else {
-        //updatedParagraphsArray.push(paragraphs[i].match(/.{1,80}(\s|$)/g))
-
         let words = paragraphs[i].split(" "); // split paragraphs into individual words
         let currentLine = "";
         let paragraphWithLinesArray = [];
@@ -62,7 +61,7 @@ This      is a second paragraph with extraneous whitespace.`);
         for (let j = 0; j < words.length;) {
           let testIfCanAddWordToLine = addWordToLine(currentLine, words[j]);
 
-          if (testIfCanAddWordToLine.length > 80) {
+          if (testIfCanAddWordToLine.length > maximumCharacters) {
             if (currentLine.length === 0) {
               currentLine = testIfCanAddWordToLine; // force to put at least one word on a line (i.e. when a single word is > 80)
               j++; // skip to the next word
@@ -84,8 +83,6 @@ This      is a second paragraph with extraneous whitespace.`);
         updatedParagraphsArray.push(paragraphWithLinesArray);
       }
     };
-
-    // console.log("updatedParagraphsArray:", updatedParagraphsArray)
 
     for (let m = 0; m < updatedParagraphsArray.length; m++) {
       if (Array.isArray(updatedParagraphsArray[m])) {

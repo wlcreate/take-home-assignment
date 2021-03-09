@@ -20,71 +20,83 @@ This      is a second paragraph with extraneous whitespace.`);
   const transformText = input => {
     let output = input;
     
-    // check if the user input anything
-    if (output === "") {
-      setTextOutput("")
-    }
-
-    // formatting space
-    let replaceSingleLineBreaks = output.replace(/(?<!\n)\n(?!\n)/g, " "); // this replaces a single new line with a single space
-    let replaceMultipleLineBreaks = replaceSingleLineBreaks.replace(/\n\n+/g, '\n\n'); // this replaces multiple new lines with a single space between them
-    let stringNoWhiteSpace = replaceMultipleLineBreaks.replace(/\s\s{2,}/g, " "); // this removes the extraneous white space
-
+    // normalizing space
+    let normalSpacing = fixSpacing(output);
+    
     // formatting where to break
-    // addNewLines(stringNoWhiteSpace)
+    output = formatLineWrap(normalSpacing);
 
-    setTextOutput(addNewLines(stringNoWhiteSpace))
-    // setTextOutput(output);
+    setTextOutput(output);
   }
 
-  const addNewLines = (string) => {
-    let splitString = string.split(/\n\n/) // split them by the "paragraphs"
-    let addLineBreakArray = [];
+  const fixSpacing = (unformattedString) => {
+    let replaceSingleNewLine = unformattedString.replace(/(?<!\n)\n(?!\n)/g, " ");
+    let replaceMultipleNewLines = replaceSingleNewLine.replace(/\n\n+/g, '\n\n');
+    let replaceExtraSpaces = replaceMultipleNewLines.replace(/\s\s{2,}/g, " ");
 
-    for (let i = 0; i < splitString.length; i++) {
-      if (splitString[i].length < 80) {
-        addLineBreakArray.push(splitString[i])
-      } else {
-        addLineBreakArray.push(splitString[i].match(/.{1,80}(\s|$)/g))
-      }
-    }
-
-    console.log(addLineBreakArray)
-    let result = []
-
-    for (let j = 0; j < addLineBreakArray.length; j++) {
-      if (Array.isArray(addLineBreakArray[j])) {
-        result.push(addLineBreakArray[j].join('\n'))
-      } else {
-        result.push(addLineBreakArray[j])
-      }
-    }
-
-    let output = result.join('\n\n')
-    return(output)
+    return replaceExtraSpaces;
   }
 
-  // const addNewLines = (string) => {
+  const formatLineWrap = (normalizedSpaceString) => {
+    let paragraphs = normalizedSpaceString.split(/\n\n/); // split them by the "paragraphs"
+    let updatedParagraphsArray = [];
+    let lineWrappedOutput = [];
 
-    // let splitString = string.split("");
-    // console.log(splitString)
-    // let result = [];
-    
-    // for (let i = 0; i < splitString.length; i++) {
-    //   if (splitString[i].length >= 80) {
-    //     result.push(splitString[i])
-    //   }
-    // }
+    const addWordToLine = (line, word) => {
+      if (line.length !== 0) {
+        line += " ";
+      }
+      return line += word;
+    };
 
-  //   let result = "";
-    
-  //   while (string.length > 0) {
-  //     result += string.substring(0, 80) + '\n';
-  //     string = string.substring(80);
-  //   }
+    for (let i = 0; i < paragraphs.length; i++) {
+      if (paragraphs[i].length < 80) {
+        updatedParagraphsArray.push(paragraphs[i]);
+      } else {
+        //updatedParagraphsArray.push(paragraphs[i].match(/.{1,80}(\s|$)/g))
 
-  //   return result
-  // }
+        let words = paragraphs[i].split(" "); // split paragraphs into individual words
+        let currentLine = "";
+        let paragraphWithLinesArray = [];
+
+        for (let j = 0; j < words.length;) {
+          let testIfCanAddWordToLine = addWordToLine(currentLine, words[j]);
+
+          if (testIfCanAddWordToLine.length > 80) {
+            if (currentLine.length === 0) {
+              currentLine = testIfCanAddWordToLine; // force to put at least one word on a line (i.e. when a single word is > 80)
+              j++; // skip to the next word
+            }
+            paragraphWithLinesArray.push(currentLine); // if testIfCanAddWordToLine makes the line > 80, add the line without the word
+            currentLine = "";
+          } else {
+            currentLine = testIfCanAddWordToLine; // if testIfCanAddWordToLine is < 80, test it next with the added word
+            j++;
+          }
+        };
+
+        // accounts for when a paragraph was split: 
+        // no more words to add && the left over is less than 80 but has something in it -> add it as a new line
+        if (currentLine.length > 0) {
+          paragraphWithLinesArray.push(currentLine);
+        }
+        
+        updatedParagraphsArray.push(paragraphWithLinesArray);
+      }
+    };
+
+    // console.log("updatedParagraphsArray:", updatedParagraphsArray)
+
+    for (let m = 0; m < updatedParagraphsArray.length; m++) {
+      if (Array.isArray(updatedParagraphsArray[m])) {
+       lineWrappedOutput.push(updatedParagraphsArray[m].join('\n')); // adds the line wrap for a paragraph
+      } else {
+       lineWrappedOutput.push(updatedParagraphsArray[m]);
+      }
+    };
+
+    return lineWrappedOutput.join('\n\n'); // adds the space between paragraphs
+  }
   
   return (
     <div className="App">

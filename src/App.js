@@ -8,7 +8,7 @@ a badly formatted file. This line is pretty long! It's way more than 80 characte
 This      is a second paragraph with extraneous whitespace.`);
   const [textOutput, setTextOutput] = React.useState('');
   const [margin, setMargin] = React.useState('')
-  const maximumCharacters = 80;
+  const [maxCharacters, setMaxCharacters] = React.useState(80);
 
   const handleChange = event => {
     setTextInput(event.target.value);
@@ -20,6 +20,7 @@ This      is a second paragraph with extraneous whitespace.`);
 
   const handleSubmit = event => {
     event.preventDefault();
+    setMaxCharacters(maxCharacters - margin)
     transformText(textInput, margin);
   };
 
@@ -49,39 +50,42 @@ This      is a second paragraph with extraneous whitespace.`);
     let lineWrappedOutput = [];
 
     const addWordToLine = (line, word) => {
-      if (line.length !== 0) {
+      if (line.length !== 0) { // this adds an extra space at the beginning of any line for paragraphs that need to be split up
         line += " ";
       }
       return line += word;
     };
 
-    const addTopBottomMargin = (marginNum) => { 
-      return "\n\n".repeat(marginNum)
+    const addTopMargin = (marginNum) => { 
+      return "\n".repeat(marginNum)
+    }
+
+    const addBottomMargin = (marginNum) => {
+      return "\n\n" + "\n".repeat(marginNum)
     }
 
     const addLeftMargin = (marginNum) => {
       return " ".repeat(marginNum)
     }
-    // also need to update maximumCharacters - marginNum
 
     for (let i = 0; i < paragraphs.length; i++) {
-      if (paragraphs[i].length < maximumCharacters) {
+      if (paragraphs[i].length < maxCharacters) {
         updatedParagraphsArray.push(addLeftMargin(marginNum) + paragraphs[i]);
       } else {
         let words = paragraphs[i].split(" "); // split paragraphs into individual words
-        let currentLine = "" + addLeftMargin(marginNum);
+        let currentLine = addLeftMargin(marginNum);
         let paragraphWithLinesArray = [];
 
         for (let j = 0; j < words.length;) {
           let testIfCanAddWordToLine = addWordToLine(currentLine, words[j]);
 
-          if (testIfCanAddWordToLine.length > maximumCharacters) {
+          if (testIfCanAddWordToLine.length > maxCharacters) {
             if (currentLine.length === 0) {
               currentLine = testIfCanAddWordToLine; // force to put at least one word on a line (i.e. when a single word is > 80)
               j++; // skip to the next word
             }
             paragraphWithLinesArray.push(currentLine); // if testIfCanAddWordToLine makes the line > 80, add the line without the word
-            currentLine = "" + addLeftMargin(marginNum);
+            currentLine = addLeftMargin(marginNum);
           } else {
             currentLine = testIfCanAddWordToLine; // if testIfCanAddWordToLine is < 80, test it next with the added word
             j++;
@@ -108,7 +112,12 @@ This      is a second paragraph with extraneous whitespace.`);
 
     let output = lineWrappedOutput.join('\n\n'); // adds the space between paragraphs
 
-    return addTopBottomMargin(marginNum) + output + addTopBottomMargin(marginNum)
+    console.log("marginNum:", marginNum)
+    console.log("topMargin:", addTopMargin(marginNum));
+    console.log("bottomMargin:", addBottomMargin(marginNum));
+    console.log("leftMargin:", addLeftMargin(marginNum));
+
+    return addTopMargin(marginNum) + output + addBottomMargin(marginNum)
   }
   
   return (

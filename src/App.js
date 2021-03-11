@@ -7,25 +7,30 @@ a badly formatted file. This line is pretty long! It's way more than 80 characte
 
 This      is a second paragraph with extraneous whitespace.`);
   const [textOutput, setTextOutput] = React.useState('');
+  const [margin, setMargin] = React.useState('')
   const maximumCharacters = 80;
 
   const handleChange = event => {
     setTextInput(event.target.value);
   };
 
+  const changeMargin = event => {
+    setMargin(event.target.value)
+  }
+
   const handleSubmit = event => {
     event.preventDefault();
-    transformText(textInput);
+    transformText(textInput, margin);
   };
 
-  const transformText = input => {
+  const transformText = (input, margin) => {
     let output = input;
     
     // normalizing space
     let normalSpacing = fixSpacing(output);
     
     // formatting with line wrapping
-    output = formatLineWrap(normalSpacing);
+    output = formatLineWrap(normalSpacing, margin);
 
     setTextOutput(output);
   }
@@ -38,7 +43,7 @@ This      is a second paragraph with extraneous whitespace.`);
     return replaceExtraSpaces;
   }
 
-  const formatLineWrap = (normalizedSpaceString) => {
+  const formatLineWrap = (normalizedSpaceString, marginNum) => {
     let paragraphs = normalizedSpaceString.split(/\n\n/); // split them by paragraphs
     let updatedParagraphsArray = [];
     let lineWrappedOutput = [];
@@ -50,12 +55,21 @@ This      is a second paragraph with extraneous whitespace.`);
       return line += word;
     };
 
+    const addTopBottomMargin = (marginNum) => { 
+      return "\n\n".repeat(marginNum)
+    }
+
+    const addLeftMargin = (marginNum) => {
+      return " ".repeat(marginNum)
+    }
+    // also need to update maximumCharacters - marginNum
+
     for (let i = 0; i < paragraphs.length; i++) {
       if (paragraphs[i].length < maximumCharacters) {
-        updatedParagraphsArray.push(paragraphs[i]);
+        updatedParagraphsArray.push(addLeftMargin(marginNum) + paragraphs[i]);
       } else {
         let words = paragraphs[i].split(" "); // split paragraphs into individual words
-        let currentLine = "";
+        let currentLine = "" + addLeftMargin(marginNum);
         let paragraphWithLinesArray = [];
 
         for (let j = 0; j < words.length;) {
@@ -67,7 +81,7 @@ This      is a second paragraph with extraneous whitespace.`);
               j++; // skip to the next word
             }
             paragraphWithLinesArray.push(currentLine); // if testIfCanAddWordToLine makes the line > 80, add the line without the word
-            currentLine = "";
+            currentLine = "" + addLeftMargin(marginNum);
           } else {
             currentLine = testIfCanAddWordToLine; // if testIfCanAddWordToLine is < 80, test it next with the added word
             j++;
@@ -92,7 +106,9 @@ This      is a second paragraph with extraneous whitespace.`);
       }
     };
 
-    return lineWrappedOutput.join('\n\n'); // adds the space between paragraphs
+    let output = lineWrappedOutput.join('\n\n'); // adds the space between paragraphs
+
+    return addTopBottomMargin(marginNum) + output + addTopBottomMargin(marginNum)
   }
   
   return (
@@ -101,6 +117,8 @@ This      is a second paragraph with extraneous whitespace.`);
         <h1>Career Lab | Take-Home Assignment</h1>
       </header>
       <form onSubmit={handleSubmit}>
+        <label>How many margins do you want to add?</label>
+        <input type="number" onChange={changeMargin} value={margin}></input>
         <label>
           <textarea onChange={handleChange} value={textInput}/>
         </label>
